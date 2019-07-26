@@ -30,10 +30,10 @@ describe('Routes', () => {
   });
 
   describe('[POST] /api/login', () => {
-    it('should return 200 on success', async () => { 
+    it('should return 200 on success', async () => {
       await request(server)
         .post('/api/register')
-        .send(user)
+        .send(user);
 
       await request(server)
         .post('/api/login')
@@ -44,13 +44,37 @@ describe('Routes', () => {
     it('should return message and token on success', async () => {
       await request(server)
         .post('/api/register')
-        .send(user)
+        .send(user);
 
       const res = await request(server)
         .post('/api/login')
         .send(user);
       expect(res.body).toHaveProperty('message', `Welcome ${user.username}!`);
       expect(res.body).toHaveProperty('token');
+    });
+  });
+
+  describe('[GET] /api/jokes', () => {
+
+    it('should return 200 on success', async () => {
+      await request(server)
+        .post('/api/register')
+        .send(user);
+
+      const loginRes = await request(server)
+        .post('/api/login')
+        .send(user);
+
+      await request(server)
+        .get('/api/jokes')
+        .set('Authorization', loginRes.body.token)
+        .expect(200)
+    });
+
+    it('should return 401 if no authorization header', async () => {
+      await request(server)
+        .get('/api/jokes')
+        .expect(401)
     });
   });
 });
