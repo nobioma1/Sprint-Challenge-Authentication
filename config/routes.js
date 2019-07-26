@@ -1,11 +1,11 @@
 const axios = require('axios');
 
 const { authenticate } = require('../auth/authenticate');
-const { addUser } = require('../database/models');
+const { addUser, getUserByUsername } = require('../database/models');
 
 module.exports = server => {
   server.post('/api/register', validateUser, register);
-  server.post('/api/login', login);
+  server.post('/api/login', validateUser, checkUser, login);
   server.get('/api/jokes', authenticate, getJokes);
 };
 
@@ -19,6 +19,26 @@ function validateUser(req, res, next) {
   return res.status(400).json({
     message: 'Fields username, password are Required ',
   });
+}
+
+async function checkUser(req, res, next) {
+  try {
+    if ('username' && 'password' in req.body) {
+      const user = await getUserByUsername(req.body.username);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ message: 'User with username does not exist' });
+      }
+      req.user = user;
+      return next();
+    }
+    return res
+      .status(400)
+      .json({ message: 'Username and Password is required' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Server Error' });
+  }
 }
 
 async function register(req, res) {
