@@ -1,6 +1,7 @@
 const axios = require('axios');
+const bcrypt = require('bcryptjs');
 
-const { authenticate } = require('../auth/authenticate');
+const { authenticate, generateToken } = require('../auth/authenticate');
 const { addUser, getUserByUsername } = require('../database/models');
 
 module.exports = server => {
@@ -52,7 +53,21 @@ async function register(req, res) {
 }
 
 function login(req, res) {
-  // implement user login
+  const {
+    body: { password },
+    user,
+  } = req;
+
+  if (bcrypt.compareSync(password, user.password)) {
+    const token = generateToken(user);
+
+    res.status(200).json({
+      message: `Welcome ${user.username}!`,
+      token,
+    });
+  } else {
+    res.status(401).json({ message: 'Incorrect Auth Details. You shall not pass! 😈' });
+  }
 }
 
 function getJokes(req, res) {
