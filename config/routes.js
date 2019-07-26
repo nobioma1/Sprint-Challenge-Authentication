@@ -3,9 +3,21 @@ const axios = require('axios');
 const { authenticate } = require('../auth/authenticate');
 
 module.exports = server => {
-  server.post('/api/register', register);
+  server.post('/api/register', validateUser, register);
   server.post('/api/login', login);
   server.get('/api/jokes', authenticate, getJokes);
+};
+
+function validateUser (req, res, next) {
+  const { body } = req;
+  const hasRequiredFields = 'username' && 'password' in body;
+
+  if (hasRequiredFields) {
+    return next();
+  }
+  return res.status(400).json({
+    message: 'Fields username, password are Required ',
+  });
 };
 
 function register(req, res) {
